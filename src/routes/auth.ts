@@ -10,7 +10,7 @@ const router = Router();
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: config.nodeEnv === 'production',
-  sameSite: 'strict' as const,
+  sameSite: config.nodeEnv === 'production' ? 'none' as const : 'strict' as const,
   path: '/',
 };
 
