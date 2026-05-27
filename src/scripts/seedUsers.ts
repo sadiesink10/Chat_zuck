@@ -27,21 +27,24 @@ const seed = async () => {
     console.log('✅ Connected to MongoDB');
 
     for (const userData of USERS) {
+      const passwordHash = await bcrypt.hash(userData.password, 12);
+      
       const existing = await User.findOne({ username: userData.username });
       if (existing) {
-        console.log(`⏭️  User "${userData.username}" already exists, skipping`);
-        continue;
+        existing.passwordHash = passwordHash;
+        existing.displayName = userData.displayName;
+        existing.avatarColor = userData.avatarColor;
+        await existing.save();
+        console.log(`✅ Updated existing user: ${userData.username}`);
+      } else {
+        await User.create({
+          username: userData.username,
+          displayName: userData.displayName,
+          passwordHash,
+          avatarColor: userData.avatarColor,
+        });
+        console.log(`✅ Created new user: ${userData.username}`);
       }
-
-      const passwordHash = await bcrypt.hash(userData.password, 12);
-      await User.create({
-        username: userData.username,
-        displayName: userData.displayName,
-        passwordHash,
-        avatarColor: userData.avatarColor,
-      });
-
-      console.log(`✅ Created user: ${userData.username}`);
     }
 
     console.log('\n🎉 Done! Users are ready to log in.');
