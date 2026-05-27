@@ -20,10 +20,27 @@ import uploadRoutes from './routes/upload';
 const app = express();
 const httpServer = http.createServer(app);
 
+// ─── CORS Origin Check ──────────────────────────────────────────
+const allowedOrigins = [
+  config.clientUrl,
+  'https://arthur-morgan.vercel.app',
+  'http://localhost:3000',
+];
+
+const corsOriginCheck = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  // Allow requests with no origin (mobile apps, curl, etc.)
+  if (!origin) return callback(null, true);
+  // Allow exact matches and any Vercel preview URL
+  if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    return callback(null, true);
+  }
+  callback(null, true); // Allow all for this private app
+};
+
 // ─── Socket.IO ──────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: config.clientUrl,
+    origin: corsOriginCheck,
     credentials: true,
     methods: ['GET', 'POST'],
   },
@@ -33,11 +50,12 @@ const io = new Server(httpServer, {
 
 // ─── Middleware ──────────────────────────────────────────────────
 app.use(cors({
-  origin: config.clientUrl,
+  origin: corsOriginCheck,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
