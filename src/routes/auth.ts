@@ -17,22 +17,16 @@ const COOKIE_OPTIONS = {
 // POST /api/auth/login
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { username, password } = req.body;
+    const { username } = req.body;
 
-    if (!username || !password) {
-      res.status(400).json({ message: 'Username and password are required' });
+    if (!username) {
+      res.status(400).json({ message: 'Email is required' });
       return;
     }
 
     const user = await User.findOne({ username: username.toLowerCase().trim() });
     if (!user) {
-      res.status(401).json({ message: 'Invalid credentials' });
-      return;
-    }
-
-    const isValid = await user.comparePassword(password);
-    if (!isValid) {
-      res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({ message: 'Account not found. Access restricted.' });
       return;
     }
 
